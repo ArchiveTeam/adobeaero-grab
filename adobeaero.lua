@@ -148,7 +148,8 @@ allowed = function(url, parenturl)
   local noscheme = string.match(url, "^https?://(.*)$")
 
   if ids[url]
-    or (noscheme and ids[string.lower(noscheme)]) then
+    or (noscheme and ids[string.lower(noscheme)])
+    or string.match(url, "^https?://[^/]*data%.adobe%.io/.") then
     return true
   end
 
@@ -432,7 +433,8 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   if allowed(url)
     and status_code < 300
     and item_type ~= "asset"
-    and not string.match(url, "^https?://cdn%.cp%.adobe%.io/.-/path/") then
+    and not string.match(url, "^https?://cdn%.cp%.adobe%.io/.-/path/")
+    and not string.match(url, "^https?://[^/]*data%.adobe%.io/.") then
     html = read_file(file)
     if string.match(url, "/api/v2/aero/assets/[^/]-%?") then
       json = cjson.decode(html)
@@ -453,7 +455,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
           context["ignore"][d["href"]] = true
         end
         local newurl = string.gsub(d["href"], "/version/[0-9]+", "/version/{version}")
-        if string.match(newurl, "{") then
+        if string.match(newurl, "{")
+          and not (string.match(newurl, "{path}") and string.match(newurl, "/rendition/"))
+          and not string.match(newurl, "^https?://cdn%.cp%.adobe%.io/content/2/dcx/[^/]+/content/{path}/version/{version}$") then
           if string.match(newurl, "{path}") then
             context["templates"][newurl] = true
           else
@@ -524,7 +528,8 @@ wget.callbacks.write_to_warc = function(url, http_stat)
   is_initial_url = false
   if http_stat["statcode"] ~= 200
     and http_stat["statcode"] ~= 404
-    and not (item_type == "asset" and http_stat["statcode"] == 203) then
+    and (item_type == "api-asset" and http_stat["statcode"] ~= 307)
+    and (item_type == "api-user" and http_stat["statcode"] == 203) then
     retry_url = true
     return false
   end
