@@ -76,7 +76,7 @@ if not WGET_AT:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = '20251129.05'
+VERSION = '20251129.06'
 USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:145.0) Gecko/20100101 Firefox/145.0'
 TRACKER_ID = 'adobeaero'
 TRACKER_HOST = 'legacy-api.arpa.li'
@@ -266,6 +266,7 @@ class WgetArgs(object):
                 wget_args.extend(['--warc-header', 'adobeaero-api-user: '+item_value])
                 wget_args.append('https://cc-api-cp.adobe.io/api/v2/aero/users/{}?api_key=Aero_Content_Service1'.format(item_value))
             elif item_type == 'api-asset':
+                requests.get('https://cdn.cp.adobe.io/content/2/dcx/{}/content/manifest/version/head'.format(item_value))
                 wget_args.extend(['--warc-header', 'adobeaero-api-asset: '+item_value])
                 wget_args.append('https://cc-api-cp.adobe.io/api/v2/aero/assets/{}?api_key=Aero_Content_Service1'.format(item_value))
 #            elif item_type == 'b-user':
